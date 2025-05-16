@@ -280,3 +280,45 @@
         (ok proposal-id)
     )
 )
+
+;; Vote on proposal
+(define-public (vote-on-proposal (proposal-id uint) (vote-for bool))
+    (let
+        (
+            (proposal (unwrap! (map-get? Proposals proposal-id) ERR-INVALID-PROTOCOL))
+            (user-position (unwrap! (map-get? UserPositions tx-sender) ERR-NOT-AUTHORIZED))
+            (voting-power (get voting-power user-position))
+        )
+        (asserts! (< block-height (get end-block proposal)) ERR-NOT-AUTHORIZED)
+        
+        (map-set Proposals proposal-id
+            (merge proposal
+                {
+                    votes-for: (if vote-for (+ (get votes-for proposal) voting-power) (get votes-for proposal)),
+                    votes-against: (if vote-for (get votes-against proposal) (+ (get votes-against proposal) voting-power))
+                }
+            )
+        )
+        (ok true)
+    )
+)
+
+;; Emergency Functions
+
+;; Pause contract
+(define-public (pause-contract)
+    (begin
+        (asserts! (is-eq tx-sender contract-owner) ERR-NOT-AUTHORIZED)
+        (var-set contract-paused true)
+        (ok true)
+    )
+)
+
+;; Resume contract
+(define-public (resume-contract)
+    (begin
+        (asserts! (is-eq tx-sender contract-owner) ERR-NOT-AUTHORIZED)
+        (var-set contract-paused false)
+        (ok true)
+    )
+)
