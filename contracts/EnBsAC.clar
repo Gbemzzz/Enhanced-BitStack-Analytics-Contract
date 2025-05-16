@@ -40,4 +40,33 @@
         minimum-votes: uint
     }
 )
+(define-data-var proposal-count uint u0)
+
+;; Enhanced Data Maps
+(define-map UserPositions
+    principal
+    {
+        total-collateral: uint,
+        total-debt: uint,
+        health-factor: uint,
+        last-updated: uint,
+        stx-staked: uint,
+        analytics-tokens: uint,
+        voting-power: uint,
+        tier-level: uint,
+        rewards-multiplier: uint
+    }
+)
+
+(define-map StakingPositions
+    principal
+    {
+        amount: uint,
+        start-block: uint,
+        last-claim: uint,
+        lock-period: uint,
+        cooldown-start: (optional uint),
+        accumulated-rewards: uint
+    }
+)
 
