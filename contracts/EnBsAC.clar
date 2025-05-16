@@ -238,3 +238,45 @@
         (ok true)
     )
 )
+;; Enhanced reward calculation with multipliers
+(define-private (calculate-rewards (user principal) (blocks uint))
+    (let
+        (
+            (staking-position (unwrap! (map-get? StakingPositions user) u0))
+            (user-position (unwrap! (map-get? UserPositions user) u0))
+            (stake-amount (get amount staking-position))
+            (base-rate (var-get base-reward-rate))
+            (multiplier (get rewards-multiplier user-position))
+        )
+        (/ (* (* (* stake-amount base-rate) multiplier) blocks) u14400000)
+    )
+)
+
+;; Governance Functions
+
+;; Create new proposal
+(define-public (create-proposal (description (string-utf8 256)) (voting-period uint))
+    (let
+        (
+            (user-position (unwrap! (map-get? UserPositions tx-sender) ERR-NOT-AUTHORIZED))
+            (proposal-id (+ (var-get proposal-count) u1))
+        )
+        (asserts! (>= (get voting-power user-position) u1000000) ERR-NOT-AUTHORIZED)
+        
+        (map-set Proposals proposal-id
+            {
+                creator: tx-sender,
+                description: description,
+                start-block: block-height,
+                end-block: (+ block-height voting-period),
+                executed: false,
+                votes-for: u0,
+                votes-against: u0,
+                minimum-votes: u1000000
+            }
+        )
+        
+        (var-set proposal-count proposal-id)
+        (ok proposal-id)
+    )
+)
